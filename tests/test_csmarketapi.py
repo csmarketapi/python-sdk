@@ -58,8 +58,8 @@ async def test_get_items(client: CSMarketAPI):
 
 
 @pytest.mark.asyncio
-async def test_get_currency_rates(client: CSMarketAPI):
-    await client.get_currency_rates()
+async def test_get_item_contents(client: CSMarketAPI):
+    await client.get_item_contents(market_hash_name="Chroma 2 Case")
 
 
 @pytest.mark.asyncio
@@ -75,3 +75,8 @@ async def test_get_player_counts_history(client: CSMarketAPI):
 @pytest.mark.asyncio
 async def test_get_markets(client: CSMarketAPI):
     await client.get_markets()
+
+
+@pytest.mark.asyncio
+async def test_get_account(client: CSMarketAPI):
+    await client.get_account()
