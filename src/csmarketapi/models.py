@@ -55,11 +55,11 @@ class SalesLatestAggregated(BaseModel):
     class Sale(BaseModel):
         id: int
         market: str
-        mean_price: float | None
-        min_price: float | None
-        max_price: float | None
-        median_price: float | None
-        volume: int | None
+        mean_price: float | None = None
+        min_price: float | None = None
+        max_price: float | None = None
+        median_price: float | None = None
+        volume: int | None = None
         day: datetime.date
 
     market_hash_name: str
@@ -72,11 +72,11 @@ class SalesHistoryAggregated(BaseModel):
         class Sale(BaseModel):
             id: int
             market: str
-            mean_price: float | None
-            min_price: float | None
-            max_price: float | None
-            median_price: float | None
-            volume: int | None
+            mean_price: float | None = None
+            min_price: float | None = None
+            max_price: float | None = None
+            median_price: float | None = None
+            volume: int | None = None
 
         day: datetime.date
         sales: list[Sale]
