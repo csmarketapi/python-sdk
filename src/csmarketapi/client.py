@@ -1,8 +1,9 @@
 import httpx
 
-from .enums import Currency, Market
+from .enums import Currency, Market, Phase
 from .models import (
-    CurrencyRates,
+    Account,
+    ItemContents,
     Items,
     ListingsHistoryAggregated,
     ListingsLatestAggregated,
@@ -42,17 +43,21 @@ class CSMarketAPI:
     async def get_listings_latest_aggregated(
         self,
         market_hash_name: str,
-        markets: list[Market],
+        markets: list[Market] | None = None,
         currency: Currency = Currency.USD,
-        max_age: str | None = None,
+        phase: Phase | None = None,
     ) -> ListingsLatestAggregated:
         r = await self.client.get(
-            "/v1/listings/latest/aggregate",
+            "/v2/listings/latest/aggregate",
             params={
                 "market_hash_name": market_hash_name,
-                "markets": [market.value for market in markets],
+                **(
+                    {"markets": [market.value for market in markets]}
+                    if markets is not None
+                    else {}
+                ),
                 "currency": currency.value,
-                **({"max_age": max_age} if max_age is not None else {}),
+                **({"phase": phase.value} if phase is not None else {}),
             },
         )
         r.raise_for_status()
@@ -61,33 +66,43 @@ class CSMarketAPI:
     async def get_listings_history_aggregated(
         self,
         market_hash_name: str,
-        markets: list[Market],
+        markets: list[Market] | None = None,
         currency: Currency = Currency.USD,
-        max_age: str | None = None,
+        since: str | None = None,
+        phase: Phase | None = None,
     ) -> ListingsHistoryAggregated:
         r = await self.client.get(
-            "/v1/listings/history/aggregate",
+            "/v2/listings/history/aggregate",
             params={
                 "market_hash_name": market_hash_name,
-                "markets": [market.value for market in markets],
+                **(
+                    {"markets": [market.value for market in markets]}
+                    if markets is not None
+                    else {}
+                ),
                 "currency": currency.value,
-                **({"max_age": max_age} if max_age is not None else {}),
+                **({"since": since} if since is not None else {}),
+                **({"phase": phase.value} if phase is not None else {}),
             },
         )
         r.raise_for_status()
-        return ListingsHistoryAggregated(items=r.json())
+        return ListingsHistoryAggregated(**r.json())
 
     async def get_sales_latest_aggregated(
         self,
         market_hash_name: str,
-        markets: list[Market],
+        markets: list[Market] | None = None,
         currency: Currency = Currency.USD,
     ) -> SalesLatestAggregated:
         r = await self.client.get(
-            "/v1/sales/latest/aggregate",
+            "/v2/sales/latest/aggregate",
             params={
                 "market_hash_name": market_hash_name,
-                "markets": [market.value for market in markets],
+                **(
+                    {"markets": [market.value for market in markets]}
+                    if markets is not None
+                    else {}
+                ),
                 "currency": currency.value,
             },
         )
@@ -97,16 +112,20 @@ class CSMarketAPI:
     async def get_sales_history_aggregated(
         self,
         market_hash_name: str,
-        markets: list[Market],
+        markets: list[Market] | None = None,
         start: str | None = None,
         end: str | None = None,
         currency: Currency = Currency.USD,
     ) -> SalesHistoryAggregated:
         r = await self.client.get(
-            "/v1/sales/history/aggregate",
+            "/v2/sales/history/aggregate",
             params={
                 "market_hash_name": market_hash_name,
-                "markets": [market.value for market in markets],
+                **(
+                    {"markets": [market.value for market in markets]}
+                    if markets is not None
+                    else {}
+                ),
                 **({"start": start} if start is not None else {}),
                 **({"end": end} if end is not None else {}),
                 "currency": currency.value,
@@ -116,23 +135,43 @@ class CSMarketAPI:
 
         return SalesHistoryAggregated(items=r.json())
 
-    async def get_items(self) -> Items:
-        r = await self.client.get("/v1/items")
+    async def get_items(
+        self,
+        q: str | None = None,
+        unlisted: bool = False,
+    ) -> Items:
+        r = await self.client.get(
+            "/v2/items/",
+            params={
+                **({"q": q} if q is not None else {}),
+                "unlisted": unlisted,
+            },
+        )
         r.raise_for_status()
         return Items(items=r.json())
 
+    async def get_item_contents(self, market_hash_name: str) -> ItemContents:
+        r = await self.client.get(
+            "/v2/items/contents",
+            params={
+                "market_hash_name": market_hash_name,
+            },
+        )
+        r.raise_for_status()
+        return ItemContents(**r.json())
+
     async def get_markets(self) -> Markets:
-        r = await self.client.get("/v1/markets")
+        r = await self.client.get("/v2/markets/")
         r.raise_for_status()
         return Markets(items=r.json())
 
-    async def get_currency_rates(self) -> CurrencyRates:
-        r = await self.client.get("/v1/currency_rates")
+    async def get_account(self) -> Account:
+        r = await self.client.get("/v2/account")
         r.raise_for_status()
-        return CurrencyRates(items=r.json())
+        return Account(**r.json())
 
     async def get_player_counts_latest(self) -> PlayerCountsLatest:
-        r = await self.client.get("/v1/player_counts/latest")
+        r = await self.client.get("/v2/player_counts/latest")
         r.raise_for_status()
         return PlayerCountsLatest(**r.json())
 
@@ -142,7 +181,7 @@ class CSMarketAPI:
         end: str | None = None,
     ) -> PlayerCountsHistory:
         r = await self.client.get(
-            "/v1/player_counts/history",
+            "/v2/player_counts/history",
             params={
                 **({"start": start} if start is not None else {}),
                 **({"end": end} if end is not None else {}),

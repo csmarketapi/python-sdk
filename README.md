@@ -7,7 +7,7 @@ Asynchronous Python client for [CSMarketAPI](https://csmarketapi.com) — typed 
 
 - **Async & Fast:** Use with `async with CSMarketAPI(...)`
 - **Typed Models:** All responses are Pydantic models
-- **Enums:** For `Market` and `Currency`
+- **Enums:** For `Market`, `Currency` and `Phase`
 - **Modern Python:** 3.13+, type hints everywhere
 
 ---
@@ -53,10 +53,10 @@ All methods are async and return Pydantic models.
 async with CSMarketAPI("YOUR_API_KEY") as client:
     res = await client.get_listings_latest_aggregated(
         market_hash_name="Chroma 2 Case",
-        markets=list(Market)
-        curreny=Currency.USD
+        markets=list(Market),
+        currency=Currency.USD,
     )
-    print(res.market_hash_name, res.listings[0].market, res.listings[0].min_price)
+    print(res.market_hash_name, res.listings[0].market, res.listings[0].ask_price)
 ```
 
 ### Sales (Latest)
@@ -69,18 +69,18 @@ async with CSMarketAPI("YOUR_API_KEY") as client:
     print(res.sales[0].market, res.sales[0].median_price)
 ```
 
-### Currency Rates
+### Item Contents
 ```python
 async with CSMarketAPI("YOUR_API_KEY") as client:
-    rates = await client.get_currency_rates()
-    print(rates.items)
+    res = await client.get_item_contents(market_hash_name="Kilowatt Case")
+    print(res.contents)
 ```
 
-### Steam Inventory
+### Account
 ```python
 async with CSMarketAPI("YOUR_API_KEY") as client:
-    inv = await client.get_steam_inventory(steam_id="YOUR_STEAM_ID")
-    print(inv.assets)
+    account = await client.get_account()
+    print(account.plan, account.usage.remaining)
 ```
 
 ---
